@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Senseek · Settings</title>
+    <link rel="icon" href="icons/mark.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="options.css">
+  </head>
+  <body>
+    <div class="shell">
+      <aside id="notice" class="notice" role="status" hidden>Search is unavailable on this page. Open a regular webpage to use Senseek. Browser settings, extension stores, and built-in PDF viewers are not supported.</aside>
+      <main>
+        <section class="intro" aria-labelledby="headline">
+          <a class="hero-brand" href="options.html" aria-label="Senseek home"><img src="icons/mark.svg" width="36" height="36" alt=""><span>Senseek</span></a>
+          <div class="eyebrow"><span></span> Semantic Page Search</div>
+          <h1 id="headline">Find what<br><span class="headline-mark">you mean<svg viewBox="0 0 220 12" aria-hidden="true"><path d="M3 8C61 1 152 1 215 7"/></svg></span>.</h1>
+          <p class="lead">Ask a question. Describe an idea.<br>Senseek finds the relevant words, right on the page.</p>
+          <div class="illustration" aria-label="Search example: a question about access after cancellation finds the relevant sentence in the original text.">
+            <div class="sample-header"><span class="sample-dot"></span><span>A subscription guide</span><span class="sample-tag">EXAMPLE</span></div>
+            <p class="sample-line">You can manage your subscription at any time.</p>
+            <p class="sample-quote"><mark>After canceling, you keep full access<br>until the current billing period ends.</mark></p>
+            <p class="sample-line sample-muted">For any questions, please contact our support team.</p>
+            <div class="sample-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>Can I still use it after canceling?</span><span class="sample-enter">↵</span></div>
+            <span class="annotation"><span aria-hidden="true">↳</span> Your answer, right in the source.</span>
+          </div>
+        </section>
+        <section class="connection" aria-labelledby="connection-heading">
+          <div class="card-heading"><span class="section-number">01 / CONNECT</span><span id="key-state" class="key-state"><i></i><span>Not configured</span></span></div>
+          <h2 id="connection-heading">Set up Senseek</h2>
+          <p class="card-lead">Connect your JEV API key to start finding.</p>
+          <form id="settings">
+            <div class="label-row"><label for="api-key">JEV API KEY</label><a href="https://console.typesafe.ai/keys" target="_blank" rel="noreferrer">Get a key <span aria-hidden="true">↗</span></a></div>
+            <div class="key-input"><input id="api-key" name="apiKey" type="password" placeholder="Paste your TypeSafe API key" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="1024" required aria-describedby="key-help"><button id="toggle-key" type="button" aria-label="Show API key" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+            <p id="key-help" class="field-help">Use an API key from the TypeSafe console.</p>
+            <details class="advanced"><summary>Search preferences <span aria-hidden="true">+</span></summary><div class="threshold-heading"><label for="threshold">Match threshold</label><output id="threshold-output" for="threshold">58%</output></div><input id="threshold" type="range" min="35" max="90" value="58" step="1"><div class="range-labels"><span>Broader</span><span>Stricter</span></div><p class="field-help">Default: 58%. Increase to show fewer, more relevant passages.</p></details>
+            <div class="actions"><button id="save" class="primary" type="submit"><span>Save settings</span><span aria-hidden="true">↗</span></button><button id="verify" class="secondary" type="button">Verify key</button></div>
+            <p id="status" class="status" role="status" aria-live="polite">Once saved, click the extension icon on a webpage to search.</p>
+          </form>
+          <div class="privacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></svg><p>Your key stays in this browser. Searches send your query and page text directly to TypeSafe.</p></div>
+          <button id="remove-key" type="button" class="text-button" disabled>Remove saved key</button>
+        </section>
+      </main>
+      <section class="how-to" aria-label="How to use Senseek"><div class="how-to-title"><span class="section-number">02 / EXPLORE</span><h2>Now, try it on a page.</h2></div><ol><li><span class="step">1</span><div><h3>Open a webpage</h3><p>An article, a document, a product guide.</p></div></li><li><span class="step">2</span><div><h3>Open Senseek</h3><p>Click the extension icon or press <kbd id="shortcut">Ctrl ⇧ F</kbd></p></div></li><li><span class="step">3</span><div><h3>Describe what you need</h3><p>Press Enter to search. Use ↑ ↓ to explore.</p></div></li></ol></section>
+      <footer><span>Senseek <span class="footer-dot">·</span> Find what you mean.</span></footer>
+    </div>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>

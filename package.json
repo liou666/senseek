@@ -1,0 +1,20 @@
+{
+  "name": "senseek-extension",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Senseek — Semantic Page Search. Find what you mean. Powered by TypeSafe Jev.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/check.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "playwright test",
+    "package": "node scripts/package.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "esbuild": "^0.25.9",
+    "fflate": "^0.8.2"
+  },
+  "engines": { "node": ">=22" }
+}

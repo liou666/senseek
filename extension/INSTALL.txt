@@ -1,0 +1,21 @@
+Senseek · Semantic Page Search
+Find what you mean.
+
+1. Extract the ZIP to a permanent folder. Do not try to install the ZIP directly.
+2. Open chrome://extensions in Chrome or edge://extensions in Edge.
+3. Enable Developer mode and select "Load unpacked".
+4. Choose the folder that contains manifest.json.
+5. In Settings, enter your TypeSafe API key from https://console.typesafe.ai/keys.
+6. Click "Save settings", open a regular webpage, and click the Senseek icon.
+   Describe what you want to find and press Enter to search.
+
+Shortcut: Ctrl+Shift+F, or Command+Shift+F on macOS.
+Use Enter / Shift+Enter to navigate matches. Press Esc to close.
+No backend, Node.js installation, or running server is required.
+
+Searches send your query and the captured page passages directly to TypeSafe.
+Your key is saved only in this browser's local extension storage.
+The installation package does not contain an API key.
+Vercel AI Gateway keys cannot be used with this extension.
+Browser settings, extension stores, built-in PDF viewers, and iframe content
+are not supported.

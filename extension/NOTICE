@@ -1,0 +1,13 @@
+Senseek
+
+Semantic relevance questions, source sentence selection, and DOM highlighting
+are based on the approach in Needle from Shubhamsaboo/awesome-llm-apps:
+https://github.com/Shubhamsaboo/awesome-llm-apps/tree/main/advanced_llm_apps/needle
+
+Upstream is licensed under Apache License 2.0 (see LICENSE).
+Modified in 2026: replaced the backend and Vercel gateway with the direct
+TypeSafe API in a Manifest V3 service worker; added local user API keys,
+English interfaces, bounded batching, cancellation, visible text extraction,
+long-passage splitting, and new artwork.
+
+This is an independent extension, not an official TypeSafe product.
