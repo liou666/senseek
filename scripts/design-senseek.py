@@ -39,7 +39,8 @@ def mark(color=INK, accent=None, context=None, small=False):
     context = context or color
     page_width = 6.6 if small else 5.8
     lens_width = 7 if small else 6.5
-    out = [f'<g transform="translate(-2 -2)">']
+    # Shift right to balance the page outline's greater visual weight on the left.
+    out = ['<g transform="translate(2 -2)">']
     # The interrupted page boundary leaves room for the lens, without overlaps.
     out.append(f'<path d="M65 33V23a7 7 0 0 0-7-7H24a7 7 0 0 0-7 7v48a7 7 0 0 0 7 7h20" fill="none" stroke="{color}" stroke-width="{page_width}" stroke-linecap="round" stroke-linejoin="round"/>')
     out.append(f'<path d="M27 29h23M27 64h9" fill="none" stroke="{context}" stroke-width="{5.5 if small else 4.8}" stroke-linecap="round"/>')

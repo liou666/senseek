@@ -1,7 +1,17 @@
 import { LIMITS, splitTextSpans } from "../extension/core/text.js";
 
-const OMIT = 'script,style,noscript,template,svg,canvas,iframe,input,textarea,select,button,nav,[role="navigation"],footer,[hidden],[aria-hidden="true"],[data-jev-find-root]';
-const BLOCK = "p,li,pre,blockquote,h1,h2,h3,h4,h5,h6,td,th,figcaption,dd,dt,div,section,article,main";
+const OMIT = 'script,style,noscript,template,svg,canvas,iframe,input,textarea,select,[hidden],[aria-hidden="true"],[data-jev-find-root]';
+const PROSE = "p,li,pre,blockquote,h1,h2,h3,h4,h5,h6,td,th,figcaption,dd,dt,summary";
+const NAVIGATION = 'nav,[role="navigation"]';
+const BLOCK = `${PROSE},div,section,article,main,details,header,footer,${NAVIGATION}`;
+
+function textBlock(parent) {
+  const block = parent.closest(BLOCK);
+  const label = parent.closest('a,button,[role="link"],[role="button"],[role="menuitem"],[role="tab"]');
+  // Keep adjacent controls separate while preserving links within prose.
+  if (label && (!block || !block.matches(PROSE) || label.closest(NAVIGATION))) return label;
+  return block || parent;
+}
 
 export function collectPage(doc = document) {
   const blocks = [];
@@ -35,7 +45,7 @@ export function collectPage(doc = document) {
   while ((node = walker.nextNode())) {
     if (++visited > 50000) { truncated = true; break; }
     if (!node.textContent || !node.parentElement || !readable(node.parentElement)) continue;
-    const el = node.parentElement.closest(BLOCK) || node.parentElement;
+    const el = textBlock(node.parentElement);
     if (group?.el !== el) flush();
     if (truncated) break;
     if (!group) group = { el, text: "", nodes: [] };
@@ -46,6 +56,19 @@ export function collectPage(doc = document) {
   }
   flush();
   return { blocks, truncated, chars: size };
+}
+
+// Like browser find, reveal only the disclosures containing the active match.
+// A match in a summary needs its outer disclosures open, not its own details.
+export function revealRange(range) {
+  const disclosures = [];
+  for (let el = range.startContainer.parentElement; el; el = el.parentElement) {
+    if (el.localName !== "details" || el.open) continue;
+    const summary = [...el.children].find((child) => child.localName === "summary");
+    if (summary?.contains(range.startContainer) && summary.contains(range.endContainer)) continue;
+    disclosures.push(el);
+  }
+  for (const details of disclosures.reverse()) details.open = true;
 }
 
 // Map UTF-16 offsets through the same visible text nodes sent to Jev.

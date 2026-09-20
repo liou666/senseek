@@ -26,7 +26,7 @@ The mark combines a webpage outline, highlighted source text, and a search lens.
 
 The `-v2` files contain the latest page-search mark revision. SVG assets use outlined paths and do not require external fonts or network resources.
 
-The extension uses this mark in the browser toolbar, settings page and favicon, and search panel. `npm run build` copies the approved SVG and 16/32/48/128px PNG exports into `extension/icons` and embeds the same SVG in the search panel. The 16px export includes optical adjustments for toolbar readability. `python scripts/icons.py` can also sync the packaged icons on their own.
+The extension uses this mark in the browser toolbar, settings page and favicon, and search panel. `npm run build` copies the approved SVG and 16/32/48/128px PNG exports into `extension/icons` and embeds the same SVG in the search panel. Chrome reads extension-page favicons from the manifest. The PNG filenames include a content hash, and the build updates the manifest so new artwork gets a fresh cache key. The 16px export includes optical adjustments for toolbar readability. `node scripts/sync-icons.mjs` or `python scripts/icons.py` can also sync the packaged icons on their own.
 
 ## Colors
 

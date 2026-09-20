@@ -1,69 +1,136 @@
-import { collectPage, rangeFor } from "./page.js";
-import panelCss from "./content.css";
-import brandIcon from "../extension/icons/mark.svg";
+import { collectPage, rangeFor, revealRange } from "./page.js";
+import { mountPanel, searchBar, svg, matchesIcon } from "./search-bar.js";
+import { localize, normalizeLanguage, setMessage } from "../extension/core/i18n.js";
 
 (() => {
   const old = document.querySelector("[data-jev-find-root]");
-  if (old) { old.dispatchEvent(new Event("jev-find-close")); return; }
+  if (old && !old.hasAttribute("data-jev-closing")) {
+    old.dispatchEvent(new Event("jev-find-close"));
+    return;
+  }
+  // A new toolbar action can reopen while the previous panel is sliding out.
+  old?.remove();
+
   const beforeFocus = document.activeElement;
   const host = document.createElement("div");
   host.dataset.jevFindRoot = "";
   host.lang = "en";
   host.style.setProperty("all", "initial", "important");
-  for (const [name, value] of Object.entries({ display: "block", position: "fixed", top: "16px", right: "16px", "z-index": "2147483647" })) host.style.setProperty(name, value, "important");
-  const shadow = host.attachShadow({ mode: "open" });
-  const style = new CSSStyleSheet();
-  style.replaceSync(panelCss);
-  shadow.adoptedStyleSheets = [style];
-  const svg = (path) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
-  const searchIcon = svg('<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/>');
-  const arrowIcon = svg('<path d="M6 18 18 6M6 6h12v12"/>');
-  // Only static, extension-owned markup enters innerHTML. Page/API text uses textContent.
-  shadow.innerHTML = `<section class="panel" role="dialog" aria-label="Senseek page search">
-    <div class="top"><div class="mark" aria-hidden="true">${brandIcon}</div><div class="brand">Senseek<span>Semantic Page Search</span></div>
-      <button class="icon settings" aria-label="Open settings" title="Settings">${svg('<path d="m9 3-1 3-3 1 1 3-2 2 2 2-1 3 3 1 1 3 3-1 3 1 1-3 3-1-1-3 2-2-2-2 1-3-3-1-1-3-3 1Z"/><circle cx="12" cy="12" r="3"/>')}</button>
-      <button class="icon close" aria-label="Close search" title="Close · Esc">${svg('<path d="m6 6 12 12M18 6 6 18"/>')}</button></div>
-    <form class="search"><div class="input-wrap">${searchIcon}<input maxlength="400" aria-label="Search this page" placeholder="Find what you mean…" autocomplete="off" spellcheck="false"><button class="submit" aria-label="Start search" title="Search · Enter">${arrowIcon}</button></div><p class="meta"></p></form>
-    <div class="status-row"><span class="status" role="status" aria-live="polite">Ready to search</span><div class="nav"><button class="prev" aria-label="Previous match" disabled>↑</button><button class="next" aria-label="Next match" disabled>↓</button></div></div>
-    <div class="empty"><div class="orbit">${svg('<path d="M12 3v4m0 10v4M3 12h4m10 0h4"/><circle cx="12" cy="12" r="5"/>')}</div><h2>Find what you mean.</h2><p class="hint">Ask a question or describe an idea.<br>Find the relevant words, right on the page.</p><div class="examples"><button type="button">Any extra fees?</button><button type="button">How do I cancel?</button></div><button class="setup" type="button" hidden>Add API key →</button></div>
-    <div class="loading" role="status" hidden>Reading between the lines…</div><div class="results" aria-label="Search results" hidden></div>
-    <div class="footer"><span>POWERED BY <strong>JEV</strong></span><span><kbd>Enter</kbd> Find / next <kbd>Esc</kbd> Close</span></div>
-  </section>`;
+  for (const [name, value] of Object.entries({
+    display: "block",
+    position: "fixed",
+    top: "8px",
+    right: "14px",
+    "z-index": "2147483647",
+  })) host.style.setProperty(name, value, "important");
+
+  const settingsIcon = svg('<path d="m9 3-1 3-3 1 1 3-2 2 2 2-1 3 3 1 1 3 3-1 3 1 1-3 3-1-1-3 2-2-2-2 1-3-3-1-1-3-3 1Z"/><circle cx="12" cy="12" r="3"/>');
+
+  // This markup is extension-owned. Text from the page and from JEV is only
+  // inserted with textContent below.
+  const shadow = mountPanel(host, `${searchBar()}
+    <section class="expanded" aria-label="Semantic matches" data-i18n-aria-label="search.region" aria-hidden="true" inert>
+      <div class="expanded-content">
+        <p class="status sr-only" role="status" aria-live="polite" data-i18n="search.ready">Ready to search</p>
+        <div class="empty"><h2 data-i18n="app.headline">Find what you mean.</h2><p class="hint" data-i18n="search.hint">Ask a question or describe an idea to find the relevant text on this page.</p><div class="examples"><button type="button" data-i18n="search.exampleFees">Any extra fees?</button><button type="button" data-i18n="search.exampleCancel">How do I cancel?</button></div><button class="setup" type="button" data-i18n="search.addKey" hidden>Add API key</button></div>
+        <div class="loading" role="status" data-i18n="search.loading" hidden>Searching this page…</div>
+        <div class="results" aria-label="Search results" data-i18n-aria-label="search.results" hidden></div>
+        <p class="page-note" hidden></p>
+        <footer><span><span data-i18n="search.poweredBy">Powered by</span> <strong>JEV</strong></span><span class="key-hints"><span><kbd>Enter</kbd> <span data-i18n="search.nextHint">Next</span></span><span><kbd>Shift+Enter</kbd> <span data-i18n="search.previousHint">Previous</span></span></span><button class="icon settings" type="button" aria-label="Open settings" data-i18n-aria-label="search.openSettings" title="Settings" data-i18n-title="search.settings">${settingsIcon}</button></footer>
+      </div>
+    </section>`);
   document.documentElement.append(host);
+
   const $ = (selector) => shadow.querySelector(selector);
-  const input = $("input"), status = $(".status"), results = $(".results");
-  let snapshot = collectPage(), matches = [], active = 0, busy = false, closed = false;
-  let requestId = null, generation = 0, searchedQuery = "";
+  const panel = $(".panel");
+  const expandedPanel = $(".expanded");
+  const input = $("input");
+  const results = $(".results");
+  const status = $(".status");
+  const count = $(".count");
+  let snapshot = collectPage();
+  let matches = [];
+  let active = 0;
+  let busy = false;
+  let closed = false;
+  let expanded = false;
+  let requestId = null;
+  let generation = 0;
+  let searchedQuery = "";
   let highlightSheet = null;
-  const observer = new MutationObserver((records) => {
-    for (const block of snapshot.blocks) {
-      if (!block.el.isConnected || records.some((record) => block.el.contains(record.target))) block.stale = true;
-    }
-    if (matches.some((match) => snapshot.blocks.find((block) => block.id === match.id)?.stale)) {
-      clearHighlights();
-      setStatus("The page has changed. Please search again.", true);
-    }
-  });
-  function message(data) {
-    try { return chrome.runtime.sendMessage(data); }
-    catch { return Promise.reject(new Error("The extension was updated. Refresh the page and try again.")); }
+  let suppressEscapeKeyup = false;
+  let language = "en";
+  const text = (element, key, params = {}) => setMessage(element, key, params, language);
+
+  function applyLanguage(value) {
+    language = normalizeLanguage(value);
+    host.lang = language;
+    localize(shadow, language);
   }
-  const openSettings = () => message({ type: "JEV_OPEN_SETTINGS" }).catch(() => setStatus("The extension was updated. Please refresh the page.", true));
-  function setStatus(text, error = false) { status.textContent = text; status.classList.toggle("error", error); }
-  function setMeta() { $(".meta").textContent = `${snapshot.blocks.length} passage${snapshot.blocks.length === 1 ? "" : "s"}${snapshot.truncated ? " · Partial page" : ""} · Sends text to JEV on search`; }
-  function clearHighlights() {
-    if (globalThis.CSS?.highlights) for (const name of ["jev-find-context", "jev-find-focus", "jev-find-active"]) CSS.highlights.delete(name);
-    if (highlightSheet) document.adoptedStyleSheets = document.adoptedStyleSheets.filter((s) => s !== highlightSheet);
-    highlightSheet = null;
+  function languageChanged(message, sender) {
+    if (sender.id === chrome.runtime.id && message?.type === "JEV_LANGUAGE" && !closed) applyLanguage(message.language);
+  }
+  chrome.runtime.onMessage.addListener(languageChanged);
+
+  function compactStatus(key, error = false) {
+    if (busy) {
+      count.innerHTML = '<span class="search-spinner" aria-hidden="true"></span><span class="sr-only" data-i18n="search.searching"></span>';
+      localize(count, language);
+    }
+    else if (matches.length) count.textContent = `${active + 1} / ${matches.length}`;
+    else if (error) count.textContent = "!";
+    else if (key === "search.noMatches") count.textContent = "0/0";
+    else count.textContent = "";
+  }
+  function setStatus(key, error = false, params = {}) {
+    text(status, key, params);
+    status.classList.toggle("error", error);
+    status.classList.toggle("sr-only", !error);
+    compactStatus(key, error);
+  }
+  function setExpanded(value) {
+    expanded = Boolean(value);
+    if (!expanded && expandedPanel.contains(shadow.activeElement)) $(".expand").focus({ preventScroll: true });
+    expandedPanel.inert = !expanded;
+    expandedPanel.setAttribute("aria-hidden", String(!expanded));
+    panel.classList.toggle("is-expanded", expanded);
+    $(".expand").setAttribute("aria-expanded", String(expanded));
+    $(".expand").setAttribute("data-i18n-aria-label", expanded ? "search.hideMatches" : "search.showMatches");
+    $(".expand").setAttribute("data-i18n-title", expanded ? "search.hideMatches" : "search.showMatches");
+    localize(shadow, language);
+    $(".expand").innerHTML = expanded ? svg('<path d="M4 6h10M4 11h10M4 16h7"/><path d="m16 18 3-3 3 3"/>') : matchesIcon;
   }
   function setBusy(value) {
     busy = value;
+    panel.setAttribute("aria-busy", String(value));
     $(".loading").hidden = !value;
-    $(".submit").dataset.busy = String(value);
-    $(".submit").innerHTML = value ? svg('<rect x="4" y="4" width="16" height="16" rx="2"/>') : arrowIcon;
-    $(".submit").setAttribute("aria-label", value ? "Cancel search" : "Start search");
-    $(".submit").title = value ? "Cancel search" : "Search · Enter";
-    $(".panel").setAttribute("aria-busy", String(value));
+    $(".prev").disabled = value || matches.length < 2;
+    $(".next").disabled = value || matches.length < 2;
+    compactStatus(status.dataset.i18n, status.classList.contains("error"));
+  }
+  function setPageNotice() {
+    $(".page-note").hidden = !snapshot.truncated;
+    text($(".page-note"), snapshot.truncated ? "search.partial" : "");
+  }
+  function empty(mode = "default") {
+    const [title, hint] = mode === "setup" ? ["search.connectKey", "search.connectHint"]
+      : mode === "noMatches" ? ["search.tryAgain", "search.tryHint"] : ["app.headline", "search.hint"];
+    const emptyView = $(".empty");
+    emptyView.hidden = false;
+    text($(".empty h2"), title);
+    text($(".hint"), hint);
+    $(".examples").hidden = mode !== "default" || !snapshot.blocks.length;
+    $(".setup").hidden = mode !== "setup";
+  }
+  function message(data) {
+    try { return chrome.runtime.sendMessage(data); }
+    catch { return Promise.reject(Object.assign(new Error(), { messageKey: "error.extensionUpdated" })); }
+  }
+  const openSettings = () => message({ type: "JEV_OPEN_SETTINGS" }).catch(() => setStatus("error.extensionUpdated", true));
+  function clearHighlights() {
+    if (globalThis.CSS?.highlights) for (const name of ["jev-find-focus", "jev-find-active"]) CSS.highlights.delete(name);
+    if (highlightSheet) document.adoptedStyleSheets = document.adoptedStyleSheets.filter((sheet) => sheet !== highlightSheet);
+    highlightSheet = null;
   }
   function cancel() {
     observer.disconnect();
@@ -74,48 +141,52 @@ import brandIcon from "../extension/icons/mark.svg";
   }
   function clearResults() {
     matches = [];
+    active = 0;
     searchedQuery = "";
     results.replaceChildren();
     results.hidden = true;
     $(".prev").disabled = $(".next").disabled = true;
     clearHighlights();
+    compactStatus(status.dataset.i18n, status.classList.contains("error"));
   }
   function paint(scroll = true) {
     clearHighlights();
-    const contexts = [], focuses = [];
+    const focuses = [];
     let currentRange = null;
-    for (let i = 0; i < matches.length; i++) {
-      const block = snapshot.blocks.find((b) => b.id === matches[i].id);
+    for (let index = 0; index < matches.length; index++) {
+      const block = snapshot.blocks.find((candidate) => candidate.id === matches[index].id);
       if (!block) continue;
-      const context = rangeFor(block), focus = rangeFor(block, matches[i].focus);
-      if (context) contexts.push(context);
+      const focus = rangeFor(block, matches[index].focus);
       if (focus) focuses.push(focus);
-      if (i === active) currentRange = focus;
+      if (index === active) currentRange = focus;
     }
-    if (globalThis.CSS?.highlights && globalThis.Highlight) {
+    if (matches.length && !currentRange) {
+      setStatus("search.changed", true);
+      return;
+    }
+    if (currentRange && scroll) revealRange(currentRange);
+    if (globalThis.CSS?.highlights && globalThis.Highlight && currentRange) {
       highlightSheet = new CSSStyleSheet();
-      highlightSheet.replaceSync("::highlight(jev-find-context){background:#eaf1db;color:#32472a}::highlight(jev-find-focus){background:#d2e7a8;color:#253d20}::highlight(jev-find-active){background:#bddd79;color:#1d3218}");
+      highlightSheet.replaceSync("::highlight(jev-find-focus){background:#d2e7a8;color:#253d20}::highlight(jev-find-active){background:#ffb347;color:#3a2200}");
       document.adoptedStyleSheets = [...document.adoptedStyleSheets, highlightSheet];
-      const context = new Highlight(...contexts), focus = new Highlight(...focuses), selected = new Highlight(...(currentRange ? [currentRange] : []));
-      context.priority = 0; focus.priority = 1; selected.priority = 2;
-      CSS.highlights.set("jev-find-context", context); CSS.highlights.set("jev-find-focus", focus); CSS.highlights.set("jev-find-active", selected);
+      const focus = new Highlight(...focuses), selected = new Highlight(currentRange);
+      focus.priority = 0; selected.priority = 1;
+      CSS.highlights.set("jev-find-focus", focus);
+      CSS.highlights.set("jev-find-active", selected);
     }
     [...results.children].forEach((button, index) => button.setAttribute("aria-current", String(index === active)));
     if (currentRange && scroll) {
-      const target = currentRange.startContainer.parentElement;
-      target.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "center" });
-      // Scroll only the results container; scrollIntoView here can cancel page navigation.
+      currentRange.startContainer.parentElement.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "center", inline: "nearest" });
       const itemRect = results.children[active]?.getBoundingClientRect();
       const listRect = results.getBoundingClientRect();
       if (itemRect?.top < listRect.top) results.scrollTop += itemRect.top - listRect.top;
       else if (itemRect?.bottom > listRect.bottom) results.scrollTop += itemRect.bottom - listRect.bottom;
     }
-    if (!currentRange && matches.length) setStatus("The page has changed. Please search again.", true);
   }
   function move(delta) {
     if (!matches.length) return;
     active = (active + delta + matches.length) % matches.length;
-    setStatus(`${active + 1} / ${matches.length} ${matches.length === 1 ? "match" : "matches"}`);
+    setStatus(matches.length === 1 ? "search.countOne" : "search.countMany", false, { current: active + 1, total: matches.length });
     paint();
   }
   function showResults(elapsedMs) {
@@ -123,22 +194,21 @@ import brandIcon from "../extension/icons/mark.svg";
     results.hidden = matches.length === 0;
     $(".prev").disabled = $(".next").disabled = matches.length < 2;
     if (!matches.length) {
-      setStatus("No strong matches found");
-      $(".empty h2").textContent = "Try another way to ask.";
-      $(".hint").textContent = "Describe a specific question, condition, or detail.";
+      empty("noMatches");
+      setStatus("search.noMatches");
       return;
     }
-    setStatus(`1 / ${matches.length} ${matches.length === 1 ? "match" : "matches"} · ${(elapsedMs / 1000).toFixed(1)} s`);
+    setStatus(matches.length === 1 ? "search.foundOne" : "search.foundMany", false, { total: matches.length, seconds: (elapsedMs / 1000).toFixed(1) });
     matches.forEach((match, index) => {
       const button = document.createElement("button");
       button.className = "result";
       button.type = "button";
       const top = document.createElement("div"); top.className = "result-top";
-      const number = document.createElement("strong"); number.textContent = `${String(index + 1).padStart(2, "0")} / SOURCE PASSAGE`;
-      const score = document.createElement("span"); score.textContent = `${Math.round(match.probability * 100)}% relevance`;
+      const number = document.createElement("strong"); text(number, "search.match", { number: String(index + 1).padStart(2, "0") });
+      const score = document.createElement("span"); text(score, "search.score", { percent: Math.round(match.probability * 100) });
       const excerpt = document.createElement("p"); excerpt.className = "excerpt"; excerpt.textContent = match.focus.text;
       top.append(number, score); button.append(top, excerpt);
-      button.addEventListener("click", () => { active = index; move(0); });
+      button.addEventListener("click", (event) => { event.stopPropagation(); active = index; move(0); });
       results.append(button);
     });
     paint();
@@ -147,32 +217,35 @@ import brandIcon from "../extension/icons/mark.svg";
     cancel();
     clearResults();
     const query = input.value.trim();
-    if (!query) { setStatus("Describe what you want to find."); input.focus(); return; }
+    if (!query) { setStatus("search.describe"); input.focus(); return; }
     snapshot = collectPage();
     if (document.body) observer.observe(document.body, { childList: true, characterData: true, subtree: true });
-    setMeta();
-    if (!snapshot.blocks.length) { setStatus("No readable text on this page.", true); return; }
+    setPageNotice();
+    if (!snapshot.blocks.length) { setExpanded(true); setStatus("search.noText", true); return; }
     const current = ++generation;
     requestId = crypto.randomUUID();
     setBusy(true);
     $(".empty").hidden = true;
-    $(".setup").hidden = true;
-    setStatus("Finding relevant passages…");
+    setStatus("search.finding");
     try {
       const result = await message({ type: "JEV_SEARCH", requestId, payload: { query, blocks: snapshot.blocks.map(({ id, text }) => ({ id, text })) } });
       if (closed || current !== generation) return;
       if (!result || result.error) {
-        if (["KEY_MISSING", "KEY_INVALID"].includes(result?.code)) $(".setup").hidden = false;
-        throw new Error(result?.error || "Search could not finish. Refresh the page and try again.");
+        if (["KEY_MISSING", "KEY_INVALID"].includes(result?.code)) {
+          setExpanded(true);
+          empty("setup");
+        }
+        throw Object.assign(new Error(), { messageKey: result?.messageKey || "error.searchFailed", params: result?.params });
       }
-      if (!Array.isArray(result.matches)) throw new Error("Search results are incomplete. Please try again.");
-      matches = result.matches.filter((m) => snapshot.blocks.some((b) => b.id === m.id));
+      if (!Array.isArray(result.matches)) throw Object.assign(new Error(), { messageKey: "error.searchIncomplete" });
+      matches = result.matches.filter((match) => snapshot.blocks.some((block) => block.id === match.id));
       active = 0;
       searchedQuery = query;
       showResults(result.elapsedMs);
     } catch (error) {
       if (!closed && current === generation) {
-        setStatus(error.message.includes("Extension context") ? "The extension was updated. Refresh the page and try again." : error.message, true);
+        setExpanded(true);
+        setStatus(error.message.includes("Extension context") ? "error.extensionUpdated" : error.messageKey || "error.searchFailed", true, error.params);
         $(".empty").hidden = false;
       }
     } finally {
@@ -180,38 +253,119 @@ import brandIcon from "../extension/icons/mark.svg";
     }
   }
   function close() {
-    closed = true; cancel(); clearHighlights(); host.remove();
+    if (closed) return;
+    closed = true;
+    chrome.runtime.onMessage.removeListener(languageChanged);
+    host.dataset.jevClosing = "";
+    const style = getComputedStyle(panel);
+    const start = { transform: style.transform, opacity: style.opacity };
+    // Preserve the current size and position, including an unfinished opening.
+    panel.style.height = `${panel.getBoundingClientRect().height}px`;
+    cancel();
+    clearHighlights();
     document.removeEventListener("keydown", keydown, true);
+    if (!suppressEscapeKeyup) document.removeEventListener("keyup", keyup, true);
     if (beforeFocus?.isConnected) beforeFocus.focus({ preventScroll: true });
+    host.inert = true;
+    panel.setAttribute("aria-hidden", "true");
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      host.remove();
+      return;
+    }
+    for (const animation of panel.getAnimations()) animation.cancel();
+    const exit = panel.animate([
+      start,
+      { transform: "translateY(calc(-100% - 8px))", opacity: 0 },
+    ], { duration: 180, easing: "cubic-bezier(.4,0,1,1)", fill: "forwards" });
+    exit.finished.then(() => host.remove(), () => host.remove());
   }
   function keydown(event) {
-    if (event.key === "Escape" && !event.isComposing) { event.preventDefault(); event.stopPropagation(); close(); }
+    const inside = event.composedPath().includes(host);
+    if (inside) return;
+    if (event.key === "Escape" && !event.isComposing) { event.preventDefault(); event.stopImmediatePropagation(); suppressEscapeKeyup = true; close(); }
   }
-  $(".search").addEventListener("submit", (event) => {
+  function keyup(event) {
+    if (!suppressEscapeKeyup || event.key !== "Escape") return;
     event.preventDefault();
-    if (busy) { cancel(); setStatus("Search canceled"); $(".empty").hidden = false; }
-    else search();
+    event.stopImmediatePropagation();
+    suppressEscapeKeyup = false;
+    document.removeEventListener("keyup", keyup, true);
+  }
+  const observer = new MutationObserver((records) => {
+    for (const block of snapshot.blocks) {
+      if (!block.el.isConnected || records.some((record) => block.el.contains(record.target))) block.stale = true;
+    }
+    if (matches.some((match) => snapshot.blocks.find((block) => block.id === match.id)?.stale)) {
+      clearHighlights();
+      matches = [];
+      results.replaceChildren();
+      results.hidden = true;
+      setStatus("search.changed", true);
+    }
   });
-  input.addEventListener("input", () => { cancel(); clearResults(); $(".empty").hidden = false; setStatus("Press Enter to search"); });
+
+  // Stop events after the control has handled them so page-level shortcuts do
+  // not see input, navigation, or button events from the shadow tree.
+  for (const type of ["keydown", "keyup", "keypress", "click", "mousedown", "mouseup", "input", "focusin"]) {
+    host.addEventListener(type, (event) => {
+      event.stopPropagation();
+      if (type === "keydown" && event.key === "Escape" && !event.isComposing) {
+        event.preventDefault();
+        suppressEscapeKeyup = true;
+        close();
+      }
+    });
+  }
+  $(".search").addEventListener("submit", (event) => { event.preventDefault(); if (!busy) void search(); });
+  input.addEventListener("input", () => { cancel(); clearResults(); empty(); setStatus("search.enter"); });
   input.addEventListener("keydown", (event) => {
-    if (event.isComposing && event.key === "Enter") { event.preventDefault(); return; }
-    if (event.key === "Enter" && matches.length && input.value.trim() === searchedQuery) { event.preventDefault(); move(event.shiftKey ? -1 : 1); }
+    event.stopPropagation();
+    if (event.key === "Escape" && !event.isComposing) {
+      event.preventDefault();
+      suppressEscapeKeyup = true;
+      close();
+      return;
+    }
+    if (event.isComposing || event.keyCode === 229) { if (event.key === "Enter") event.preventDefault(); return; }
+    if (event.key === "Enter") {
+      event.preventDefault();
+      if (busy) return;
+      if (matches.length && input.value.trim() === searchedQuery) move(event.shiftKey ? -1 : 1);
+      else void search();
+    } else if ((event.key === "ArrowUp" || event.key === "ArrowDown") && matches.length) {
+      event.preventDefault();
+      move(event.key === "ArrowDown" ? 1 : -1);
+    }
   });
-  $(".prev").onclick = () => move(-1); $(".next").onclick = () => move(1);
-  $(".close").onclick = close; $(".settings").onclick = $(".setup").onclick = openSettings;
-  shadow.querySelectorAll(".examples button").forEach((button) => { button.onclick = () => { input.value = button.textContent; input.focus(); setStatus("Press Enter to search"); }; });
+  $(".prev").onclick = () => move(-1);
+  $(".next").onclick = () => move(1);
+  $(".expand").onclick = () => setExpanded(!expanded);
+  $(".close").onclick = close;
+  $(".settings").onclick = openSettings;
+  $(".setup").onclick = openSettings;
+  shadow.querySelectorAll(".examples button").forEach((button) => {
+    button.onclick = () => { input.value = button.textContent; input.focus(); setStatus("search.enter"); };
+  });
   host.addEventListener("jev-find-close", close);
   document.addEventListener("keydown", keydown, true);
-  setMeta(); input.focus();
+  document.addEventListener("keyup", keyup, true);
+  setPageNotice();
+  input.focus();
+
   const initialGeneration = generation;
   message({ type: "JEV_STATUS" }).then((data) => {
-    if (closed || generation !== initialGeneration) return;
+    if (closed) return;
+    applyLanguage(data?.language);
+    if (generation !== initialGeneration) return;
     if (!data?.configured) {
-      setStatus("One more step: set up Senseek");
-      $(".empty h2").textContent = "Connect, then start exploring.";
-      $(".hint").textContent = "Add your TypeSafe API key in the extension settings.";
+      setExpanded(true);
+      empty("setup");
       $(".examples").hidden = true;
       $(".setup").hidden = false;
-    } else setStatus("This page · Search by meaning");
-  }).catch(() => setStatus("The extension was updated. Refresh the page and try again.", true));
+      setStatus("search.keyNeeded");
+    } else {
+      empty();
+      setStatus("search.ready");
+    }
+  }).catch(() => { if (!closed) setStatus("error.extensionUpdated", true); });
 })();

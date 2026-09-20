@@ -1,11 +1,20 @@
-<h1><img src="./assets/senseek/exports/icon-128.png" width="60" align="center" alt="Senseek icon"> Senseek</h1>
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/senseek/senseek-logo-inverse.svg">
+    <img src="./assets/senseek/senseek-logo.svg" width="280" alt="Senseek">
+  </picture>
+</h1>
+
+**English** | [简体中文](./README.zh-CN.md) | [日本語](./README.ja.md)
 
 > Semantic Page Search — Find what you mean.
 
-Senseek is a browser extension for finding meaning inside the page you are reading. Add your own JEV API key in the extension settings; Senseek runs without a backend.
+Senseek is a browser extension for finding meaning inside the page you are reading. It opens as a compact, Ctrl+F-style search box and can expand to show ranked matches. Add your own JEV API key in the extension settings; Senseek runs without a backend.
 
 <p align="center">
-  <img width="960" alt="Senseek finding a relevant passage on a webpage" src="./assets/senseek/previews/senseek-demo.png">
+  <img width="960" alt="Senseek searching for access after cancellation, showing ranked matches and highlighting the current match in orange on the page" src="./assets/senseek/previews/senseek-demo.png">
+  <br>
+  <sub>Example search on a sample page. Scores are illustrative.</sub>
 </p>
 
 ## Why Senseek?
@@ -16,11 +25,11 @@ A general-purpose LLM can also power this kind of search, but JEV is a better fi
 
 ## How it works
 
-1. Open Senseek on any regular webpage.
+1. Open Senseek from the toolbar icon or its keyboard shortcut. The compact search box stays out of the way like the browser's native find box.
 2. Ask a question in natural language, such as “Can I still use it after canceling?”
-3. Senseek extracts visible page text into short passages.
+3. Senseek extracts page text, including navigation links, button labels, footers, and native collapsible sections, into short passages.
 4. The browser sends the query and passages directly to JEV for semantic matching.
-5. Results are ranked and the matching sentence is highlighted in the original page.
+5. Results are ranked and the matching sentence is highlighted in the original page. Expand the box to inspect every match and its confidence.
 
 The API key stays in the browser's local extension storage. Search requests go directly from the browser to TypeSafe/JEV; no Senseek server is involved.
 
@@ -40,10 +49,14 @@ The API key stays in the browser's local extension storage. Search requests go d
 - It does not understand questions, conditions, or implied answers.
 - Long pages can produce many noisy matches that still require manual reading.
 
-Senseek also has limits: it needs a valid JEV API key and network access, and it searches visible text in the current page. Images, scanned PDFs, closed iframes, and hidden content are not searchable.
+Senseek also has limits: it needs a valid JEV API key and network access. It searches text in the current page and opens native collapsible sections when you select a match inside them. Images, scanned PDFs, closed iframes, and other hidden content are not searchable.
 
 ## Try it
 
-Load the `extension` directory as an unpacked Chrome or Edge extension, open Settings, and enter a key from the [TypeSafe console](https://console.typesafe.ai/keys).
+Download the ZIP from the [latest release](https://github.com/liou666/senseek/releases/latest), unzip it, and load the extracted folder as an unpacked extension in Chrome or Edge 127+.
+
+Open Settings and enter a key from the [TypeSafe console](https://console.typesafe.ai/keys). Click the toolbar icon or press the shortcut shown in Settings to open or close Senseek.
+
+Settings also lets you choose English, 简体中文, or 日本語. The display language saves automatically and updates open search bars immediately. Page excerpts stay in their original language.
 
 See `extension/LICENSE` and `extension/NOTICE` for license and attribution details.

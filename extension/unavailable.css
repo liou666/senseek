@@ -1,0 +1,5 @@
+/* Chrome owns the popup frame. Keep the shared content flush inside it. */
+:root{color-scheme:light;background:#fff}
+body{margin:0;width:420px}
+#senseek{display:block}
+#senseek::part(panel){width:100%;border:0;border-radius:0;box-shadow:none}

@@ -8,7 +8,7 @@ assert.deepEqual(manifest.host_permissions, ["https://api.typesafe.ai/*"]);
 assert(!manifest.content_scripts && !manifest.externally_connectable);
 const files = await readdir("extension", { recursive: true });
 for (const file of files.filter((f) => f.endsWith(".js"))) execFileSync(process.execPath, ["--check", path.join("extension", file)]);
-for (const file of [manifest.background.service_worker, manifest.options_page, "content.js", ...Object.values(manifest.icons)]) await access(path.join("extension", file));
+for (const file of [manifest.background.service_worker, manifest.options_page, "content.js", "unavailable.html", "unavailable.css", "unavailable.js", ...Object.values(manifest.icons)]) await access(path.join("extension", file));
 const source = await readFile("extension/background.js", "utf8");
 assert(source.includes('accessLevel: "TRUSTED_CONTEXTS"'));
 console.log("Manifest, permissions, required assets, and JavaScript syntax are valid.");

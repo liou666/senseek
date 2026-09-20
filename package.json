@@ -1,6 +1,6 @@
 {
   "name": "senseek-extension",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "description": "Senseek — Semantic Page Search. Find what you mean. Powered by TypeSafe Jev.",
@@ -16,5 +16,7 @@
     "esbuild": "^0.25.9",
     "fflate": "^0.8.2"
   },
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  }
 }

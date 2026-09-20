@@ -4,47 +4,91 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
-    <title>Senseek · Settings</title>
-    <link rel="icon" href="icons/mark.svg" type="image/svg+xml">
+    <title data-i18n="app.title">Senseek · Settings</title>
     <link rel="stylesheet" href="options.css">
   </head>
   <body>
-    <div class="shell">
-      <aside id="notice" class="notice" role="status" hidden>Search is unavailable on this page. Open a regular webpage to use Senseek. Browser settings, extension stores, and built-in PDF viewers are not supported.</aside>
-      <main>
-        <section class="intro" aria-labelledby="headline">
-          <a class="hero-brand" href="options.html" aria-label="Senseek home"><img src="icons/mark.svg" width="36" height="36" alt=""><span>Senseek</span></a>
-          <div class="eyebrow"><span></span> Semantic Page Search</div>
-          <h1 id="headline">Find what<br><span class="headline-mark">you mean<svg viewBox="0 0 220 12" aria-hidden="true"><path d="M3 8C61 1 152 1 215 7"/></svg></span>.</h1>
-          <p class="lead">Ask a question. Describe an idea.<br>Senseek finds the relevant words, right on the page.</p>
-          <div class="illustration" aria-label="Search example: a question about access after cancellation finds the relevant sentence in the original text.">
-            <div class="sample-header"><span class="sample-dot"></span><span>A subscription guide</span><span class="sample-tag">EXAMPLE</span></div>
-            <p class="sample-line">You can manage your subscription at any time.</p>
-            <p class="sample-quote"><mark>After canceling, you keep full access<br>until the current billing period ends.</mark></p>
-            <p class="sample-line sample-muted">For any questions, please contact our support team.</p>
-            <div class="sample-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>Can I still use it after canceling?</span><span class="sample-enter">↵</span></div>
-            <span class="annotation"><span aria-hidden="true">↳</span> Your answer, right in the source.</span>
+    <main class="shell">
+      <section class="intro" aria-labelledby="headline">
+        <a class="hero-brand" href="options.html" aria-label="Senseek home" data-i18n-aria-label="app.home">
+          <img src="icons/mark.svg" width="40" height="40" alt="">
+          <span class="brand-copy">
+            <span class="brand-name">Senseek</span>
+            <span class="brand-description" data-i18n="app.description">Semantic Page Search</span>
+          </span>
+        </a>
+        <h1 id="headline" data-i18n="app.headline">Find what you mean.</h1>
+        <p class="lead" data-i18n="settings.lead">Add your API key, then open Senseek on a webpage.</p>
+      </section>
+
+      <section class="settings-card" aria-label="Senseek settings" data-i18n-aria-label="settings.label">
+        <form id="settings" novalidate>
+          <div class="language-section">
+            <div class="language-copy">
+              <h2><label for="language" data-i18n="settings.language">Language</label></h2>
+              <p id="language-help" data-i18n="settings.languageHelp">Choose your display language.</p>
+            </div>
+            <select id="language" name="language" aria-describedby="language-help language-status" disabled>
+              <option value="en" lang="en">English</option>
+              <option value="zh-CN" lang="zh-CN">简体中文</option>
+              <option value="ja" lang="ja">日本語</option>
+            </select>
+            <p id="language-status" class="status" role="status" aria-live="polite"></p>
           </div>
+          <div class="connection">
+            <div class="section-heading">
+              <h2><label for="api-key" data-i18n="settings.key">JEV API key</label></h2>
+              <span id="key-state" class="key-state"><i aria-hidden="true"></i><span data-i18n="state.notConfigured">Not configured</span></span>
+            </div>
+            <p id="key-help" class="field-help"><span data-i18n="settings.keyHelp">Use your key from TypeSafe.</span> <a href="https://console.typesafe.ai/keys" target="_blank" rel="noreferrer"><span data-i18n="settings.getKey">Get an API key</span> <span aria-hidden="true">↗</span></a></p>
+            <div class="key-row">
+              <div class="key-input">
+                <input id="api-key" name="apiKey" type="password" placeholder="Paste your API key" data-i18n-placeholder="settings.keyPlaceholder" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="1024" aria-describedby="key-help status" disabled>
+                <button id="toggle-key" type="button" aria-label="Show API key" data-i18n-aria-label="settings.showKey" aria-pressed="false" disabled>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <button id="verify" class="secondary" type="button" data-i18n="settings.verify" disabled>Verify key</button>
+            </div>
+            <div class="key-footer"><span data-i18n="settings.autoSave">Changes save automatically.</span><button id="remove-key" class="text-button" type="button" data-i18n="settings.removeKey" disabled>Remove saved key</button></div>
+            <p id="status" class="status" role="status" aria-live="polite"></p>
+          </div>
+
+          <details class="advanced">
+            <summary><span data-i18n="settings.preferences">Search preferences</span> <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 8 4 4 4-4"/></svg></summary>
+            <div class="preference-content">
+              <div class="threshold-heading"><label for="threshold" data-i18n="settings.threshold">Match threshold</label><div class="threshold-actions"><output id="threshold-output" for="threshold">58%</output><button id="reset-preferences" class="reset-button" type="button" aria-label="Reset search preferences" data-i18n-aria-label="settings.resetLabel" title="Restore the default threshold (58%)" data-i18n-title="settings.resetTitle" data-i18n="settings.reset" disabled>Reset</button></div></div>
+              <input id="threshold" type="range" min="35" max="90" value="58" step="1" aria-describedby="threshold-help preference-status" disabled>
+              <div class="range-labels"><span data-i18n="settings.broader">Broader</span><span data-i18n="settings.stricter">Stricter</span></div>
+              <p id="threshold-help" class="field-help" data-i18n="settings.thresholdHelp">Default: 58%. A higher threshold shows fewer, more relevant matches.</p>
+              <p id="preference-status" class="status" role="status" aria-live="polite"></p>
+            </div>
+          </details>
+        </form>
+
+        <section class="shortcut-section" aria-labelledby="shortcut-heading">
+          <div class="shortcut-copy">
+            <h2 id="shortcut-heading" data-i18n="settings.shortcut">Keyboard shortcut</h2>
+            <p data-i18n="settings.shortcutHelp">Open or close the search bar.</p>
+          </div>
+          <div class="shortcut-controls">
+            <kbd id="shortcut" data-i18n="settings.unassigned">Not assigned</kbd>
+            <button id="configure-shortcut" class="shortcut-link" type="button" aria-label="Change keyboard shortcut" data-i18n-aria-label="settings.changeShortcut"><span data-i18n="settings.change">Change</span> <span aria-hidden="true">↗</span></button>
+          </div>
+          <p id="shortcut-help" data-i18n="settings.shortcutConflict" hidden>This shortcut is unassigned or in use. Choose a free combination.</p>
         </section>
-        <section class="connection" aria-labelledby="connection-heading">
-          <div class="card-heading"><span class="section-number">01 / CONNECT</span><span id="key-state" class="key-state"><i></i><span>Not configured</span></span></div>
-          <h2 id="connection-heading">Set up Senseek</h2>
-          <p class="card-lead">Connect your JEV API key to start finding.</p>
-          <form id="settings">
-            <div class="label-row"><label for="api-key">JEV API KEY</label><a href="https://console.typesafe.ai/keys" target="_blank" rel="noreferrer">Get a key <span aria-hidden="true">↗</span></a></div>
-            <div class="key-input"><input id="api-key" name="apiKey" type="password" placeholder="Paste your TypeSafe API key" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="1024" required aria-describedby="key-help"><button id="toggle-key" type="button" aria-label="Show API key" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
-            <p id="key-help" class="field-help">Use an API key from the TypeSafe console.</p>
-            <details class="advanced"><summary>Search preferences <span aria-hidden="true">+</span></summary><div class="threshold-heading"><label for="threshold">Match threshold</label><output id="threshold-output" for="threshold">58%</output></div><input id="threshold" type="range" min="35" max="90" value="58" step="1"><div class="range-labels"><span>Broader</span><span>Stricter</span></div><p class="field-help">Default: 58%. Increase to show fewer, more relevant passages.</p></details>
-            <div class="actions"><button id="save" class="primary" type="submit"><span>Save settings</span><span aria-hidden="true">↗</span></button><button id="verify" class="secondary" type="button">Verify key</button></div>
-            <p id="status" class="status" role="status" aria-live="polite">Once saved, click the extension icon on a webpage to search.</p>
-          </form>
-          <div class="privacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></svg><p>Your key stays in this browser. Searches send your query and page text directly to TypeSafe.</p></div>
-          <button id="remove-key" type="button" class="text-button" disabled>Remove saved key</button>
-        </section>
-      </main>
-      <section class="how-to" aria-label="How to use Senseek"><div class="how-to-title"><span class="section-number">02 / EXPLORE</span><h2>Now, try it on a page.</h2></div><ol><li><span class="step">1</span><div><h3>Open a webpage</h3><p>An article, a document, a product guide.</p></div></li><li><span class="step">2</span><div><h3>Open Senseek</h3><p>Click the extension icon or press <kbd id="shortcut">Ctrl ⇧ F</kbd></p></div></li><li><span class="step">3</span><div><h3>Describe what you need</h3><p>Press Enter to search. Use ↑ ↓ to explore.</p></div></li></ol></section>
-      <footer><span>Senseek <span class="footer-dot">·</span> Find what you mean.</span></footer>
-    </div>
+      </section>
+
+      <div class="privacy">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></svg>
+        <p data-i18n="settings.privacy">Your key stays in this browser. Searches send your query and page text directly to TypeSafe.</p>
+      </div>
+      <footer class="app-info" aria-label="About Senseek" data-i18n-aria-label="app.about">
+        <span id="version" title="Extension version" data-i18n-title="app.version"></span>
+        <span aria-hidden="true">·</span>
+        <a href="https://github.com/liou666/senseek" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      </footer>
+    </main>
     <script type="module" src="options.js"></script>
   </body>
 </html>
